@@ -1,6 +1,10 @@
 from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase
 from flask import Request
 
+import nltk
+nltk.download('punkt')
+
+import os
 import sys
 import getopt
 import joblib
@@ -17,6 +21,9 @@ import classification_tools.save_results as sr
 import classification_tools as clt
 
 parameters = joblib.load("classification_tools/data/configuration.joblib")
+#if __name__ != "__main__":
+#    parameters = joblib.load("gs://classification_tools/data/configuration.joblib")
+
 min_prob_tactics = parameters[2][0]	
 max_prob_tactics = parameters[2][1]
 min_prob_techniques = parameters[3][0]
@@ -132,16 +139,32 @@ def get_mitre_result(request):
         Objects from Mitre Att&ck
     """
 
+
     parsed_data = ""
-    if isinstance(request, dict): 
-        parsed_data = request["data"]
+    if isinstance(request, str): 
+        parsed_data = request#["data"]
     else:
+        # Super simple auth mechanism for now
+        if request.headers.get("Authorization") != os.getenv("SHUFFLE_APIKEY"):
+            return {
+                "success": False,
+                "reason": "Bad apikey. Set Authorization header.",
+            }
+
         try:
-            json_data = request.get_json()
-            print(f"DATA: {json_data}")
-            parsed_data = json_data["data"]
+            parsed_data = request.data
+            print(f"DATA: {parsed_data}")
+            #parsed_data = json_data["data"]
         except Exception as e:
-            return f"ERROR: {e}"
+            return {
+                "success": False,
+                "reason": f"ERROR in request data parsing: {e}",
+            }
+
+    try:
+        parsed_data = parsed_data.decode("utf-8")
+    except:
+        pass
 
     #print("DATA: ", parsed_data)
     ret = get_result(parsed_data)
@@ -149,14 +172,14 @@ def get_mitre_result(request):
     try:
         return json.dumps(ret)
     except Exception as e:
-        return f"Error returning data: {e}"
+        return {
+            "success": False,
+            "reason": f"Error returning data: {e}",
+        }
 
 if __name__ == "__main__":
     #import warnings
     #warnings.warn("deprecated", DeprecationWarning)
-    data = {
-        "data": "THIS IS SOME DATA",
-    }
-
+    data = "THIS IS SOME DATA"
     ret = get_mitre_result(data)
     print(ret)

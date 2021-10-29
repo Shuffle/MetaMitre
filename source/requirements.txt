@@ -4,4 +4,4 @@ stix2==1.2.1
 nltk==3.4.5
 colorama
 pandas==0.25.3
-#scikit-learn==0.22.2.post1
+scikit-learn==0.22.2.post1

@@ -1,4 +1,0 @@
-gcloud functions deploy get_mitre_result \
-	--runtime=python38 \
-	--trigger-http \
-	--allow-unauthenticated
