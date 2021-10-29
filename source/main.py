@@ -169,7 +169,7 @@ def get_mitre_result(request):
     if len(parsed_data) == 0:
         return {
             "success": False,
-            "reason": f"No data to handle. Send POST request with data.",
+            "reason": f"No data to handle. Send POST request with data and content-type text/plain",
         }
 
     print("[INFO] Handling data of length {len(parsed_data)}")
