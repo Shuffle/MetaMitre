@@ -20,10 +20,12 @@ There's a test folder with some basic curl scripts.
 
 ## Todos 
 [X] - Basic API that can take a JSON blob
-[ ] - A way to say yes/no to whether it's correct
+[X] - An API for getting IOCs from plaintext
+[ ] - A way to say yes/no to whether it's correct in the AI model
 [ ] - A way to rebuild with new data that's been collected
 [ ] - Add tests to see if it crashes at all
 [ ] - Make deployment easy through Github actions
+[ ] - Make it WAY faster
 
 ## License
 AGPLv3 - Please mention Shuffle and our inventions wherever you go :)

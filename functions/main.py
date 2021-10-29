@@ -1,9 +1,6 @@
 from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase
 from flask import Request
-
-import nltk
-nltk.download('punkt')
-nltk.download('wordnet')
+from ioc_finder import find_iocs
 
 import os
 import sys
@@ -20,6 +17,10 @@ import classification_tools.preprocessing as prp
 import classification_tools.postprocessing as pop
 import classification_tools.save_results as sr
 import classification_tools as clt
+
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
 
 parameters = joblib.load("classification_tools/data/configuration.joblib")
 #if __name__ != "__main__":
@@ -132,6 +133,91 @@ def get_result(data):
 
     return ttps
 
+def get_ioc_data(data):
+    iocs = find_iocs(data)
+    newarray = []
+    for key, value in iocs.items():
+        if len(value) > 0:
+            for item in value:
+                # If in here: attack techniques. Shouldn't be 3 levels so no
+                # recursion necessary
+                if isinstance(value, dict):
+                    for subkey, subvalue in value.items():
+                        if len(subvalue) > 0:
+                            for subitem in subvalue:
+                                data = {
+                                    "data": subitem,
+                                    "data_type": "%s_%s" % (key[:-1], subkey),
+                                }
+                                if data not in newarray:
+                                    newarray.append(data)
+                else:
+                    data = {"data": item, "data_type": key[:-1]}
+                    if data not in newarray:
+                        newarray.append(data)
+
+    # Reformatting IP
+    for item in newarray:
+        if "ip" in item["data_type"]:
+            item["data_type"] = "ip"
+            try:
+                item["is_private_ip"] = ipaddress.ip_address(item["data"]).is_private
+            except:
+                print("Error parsing %s" % item["data"])
+                pass
+
+    return newarray
+
+def get_ioc_result(request):
+    """Responds to any HTTP request.
+    Args:
+        request (flask.Request): HTTP request object.
+    Returns:
+        Object data with IOCs from the request
+    """
+
+    parsed_data = ""
+    if isinstance(request, str): 
+        parsed_data = request#["data"]
+    else:
+        # Super simple auth mechanism for now
+        if request.headers.get("Authorization") != os.getenv("SHUFFLE_APIKEY"):
+            return {
+                "success": False,
+                "reason": "Bad apikey. Set Authorization header.",
+            }
+
+        try:
+            parsed_data = request.data
+        except Exception as e:
+            return {
+                "success": False,
+                "reason": f"ERROR in request data parsing: {e}",
+            }
+
+    try:
+        parsed_data = parsed_data.decode("utf-8")
+    except:
+        pass
+
+    if len(parsed_data) == 0:
+        return {
+            "success": False,
+            "reason": f"No data to handle. Send POST request with data and content-type text/plain",
+        }
+
+    print("[INFO] Handling data of length {len(parsed_data)}")
+
+    ret = get_ioc_data(parsed_data)
+
+    try:
+        return json.dumps(ret)
+    except Exception as e:
+        return {
+            "success": False,
+            "reason": f"Error returning data: {e}",
+        }
+
 def get_mitre_result(request):
     """Responds to any HTTP request.
     Args:
@@ -187,6 +273,6 @@ def get_mitre_result(request):
 if __name__ == "__main__":
     #import warnings
     #warnings.warn("deprecated", DeprecationWarning)
-    data = "THIS IS SOME DATA"
-    ret = get_mitre_result(data)
+    data = "THIS IS SOME DATA google.com 1.2.3.4"
+    ret = get_ioc_result(data)
     print(ret)
