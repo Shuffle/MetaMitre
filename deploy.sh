@@ -7,7 +7,7 @@ gcloud functions deploy get_mitre_result \
 	--region=europe-west1 \
 	--runtime=python37 \
 	--verbosity=debug \
-	--memory=512MB \
+	--memory=1024MB \
 	--set-env-vars SHUFFLE_APIKEY="2&&xml%HQQ883NlGfeK" \
 	--source="./source" \
 	--trigger-http \
