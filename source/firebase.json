@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+		"redirects": [ {
+			"source": "/",
+			"destination": "https://shuffler.io",
+			"type": 301
+		} ],
+		"rewrites": [ 
+			{
+			"source": "/mitre",
+			"function": "get_mitre_result"
+			} 
+		]
+  }
+}

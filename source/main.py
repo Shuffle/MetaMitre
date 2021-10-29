@@ -3,6 +3,7 @@ from flask import Request
 
 import nltk
 nltk.download('punkt')
+nltk.download('wordnet')
 
 import os
 import sys
@@ -153,7 +154,7 @@ def get_mitre_result(request):
 
         try:
             parsed_data = request.data
-            print(f"DATA: {parsed_data}")
+            #print(f"DATA: {parsed_data}")
             #parsed_data = json_data["data"]
         except Exception as e:
             return {
