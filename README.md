@@ -1,3 +1,6 @@
+# Deprecated
+This has not been in use since 2022. Any and all API keys in here don't work anymore. 
+
 # Meta Mitre
 Meta Mitre is an attempt at making an API which takes random input data and gives you Mitre Att&ck data in return.
 
